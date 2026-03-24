@@ -1,6 +1,7 @@
 const form = document.getElementById('engineForm');
 const runEngineBtn = document.getElementById('runEngineBtn');
 const rerunAiBtn = document.getElementById('rerunAiBtn');
+const downloadReportBtn = document.getElementById('downloadReportBtn');
 const scanBadge = document.getElementById('scanBadge');
 const emptyState = document.getElementById('emptyState');
 const resultsContent = document.getElementById('resultsContent');
@@ -19,20 +20,27 @@ const crawlSnapshot = document.getElementById('crawlSnapshot');
 const priorityList = document.getElementById('priorityList');
 const gapList = document.getElementById('gapList');
 const inventoryList = document.getElementById('inventoryList');
+const calloutList = document.getElementById('calloutList');
 const clusterStatus = document.getElementById('clusterStatus');
 const clusterMap = document.getElementById('clusterMap');
 const linkOpportunities = document.getElementById('linkOpportunities');
 const blueprintList = document.getElementById('blueprintList');
+const briefList = document.getElementById('briefList');
 const competitorStatus = document.getElementById('competitorStatus');
 const competitorComparison = document.getElementById('competitorComparison');
 const aiStatus = document.getElementById('aiStatus');
 const aiAnalysis = document.getElementById('aiAnalysis');
+const reportGateForm = document.getElementById('reportGateForm');
+const reportStatus = document.getElementById('reportStatus');
 
 let lastPayload = null;
+let lastResult = null;
+let reportUnlocked = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   bindSmoothScroll();
   bindForm();
+  bindReportGate();
 });
 
 function bindSmoothScroll() {
@@ -68,6 +76,8 @@ function bindForm() {
       });
 
       const data = await response.json();
+      lastResult = data;
+      reportUnlocked = false;
       renderResults(data);
       document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
@@ -88,12 +98,39 @@ function bindForm() {
       });
 
       const data = await response.json();
+      lastResult = data;
       renderResults(data);
     } catch (error) {
       renderFailure(error);
     } finally {
       setLoadingState(false);
     }
+  });
+}
+
+function bindReportGate() {
+  reportGateForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!lastResult) return;
+
+    const lead = getLeadDetails();
+    if (!lead.name || !lead.phone || !lead.email) {
+      reportGateForm.reportValidity();
+      return;
+    }
+
+    reportUnlocked = true;
+    reportStatus.textContent = 'Unlocked';
+    downloadReportBtn.disabled = false;
+    downloadReport();
+  });
+
+  downloadReportBtn.addEventListener('click', () => {
+    if (!lastResult || !reportUnlocked) {
+      reportGateForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    downloadReport();
   });
 }
 
@@ -144,12 +181,16 @@ function setLoadingState(active, label = 'Ready') {
     overallSummary.textContent = 'Crawling the site, classifying local pages, and building the expansion map.';
     crawlStatus.textContent = 'Scanning site';
     crawlSnapshot.innerHTML = '<p>The engine is inventorying pages, headings, metadata, forms, proof signals, and internal links.</p>';
+    calloutList.innerHTML = '<article class="callout-item"><strong>Scanning key pages</strong><span>The engine is evaluating headlines, CTA placement, proof signals, metadata, and local relevance across the crawl.</span></article>';
     clusterStatus.textContent = 'Building map';
     clusterMap.innerHTML = '<div class="cluster-empty">The engine is mapping hubs, market pages, and missing page clusters.</div>';
     competitorStatus.textContent = 'Pending';
     competitorComparison.innerHTML = '<div class="competitor-empty">Competitor comparison will appear if competitor sites were provided.</div>';
+    briefList.innerHTML = '<article class="brief-item"><strong>Generating content briefs</strong><span>The engine is turning the highest-priority page recommendations into tighter page build guidance.</span></article>';
     aiStatus.textContent = 'Working';
     aiAnalysis.innerHTML = '<p>Building the expansion strategy based on the crawl.</p>';
+    reportStatus.textContent = 'Locked';
+    downloadReportBtn.disabled = true;
   }
 }
 
@@ -183,9 +224,11 @@ function renderResults(data) {
   renderPriorityList(priorityList, data.priorities || []);
   renderGapList(gapList, data.gaps || []);
   renderInventoryList(inventoryList, data.inventory || []);
+  renderCallouts(calloutList, data.callouts || []);
   renderClusterMap(data.clusterMap || {});
   renderActionList(linkOpportunities, data.linkOpportunities || []);
   renderBlueprints(blueprintList, data.blueprints || []);
+  renderBriefs(briefList, data.contentBriefs || []);
   renderCompetitors(data.competitorComparison || {});
 
   scanBadge.textContent = 'Complete';
@@ -385,6 +428,54 @@ function renderCompetitors(data) {
   }
 }
 
+function renderCallouts(container, items) {
+  container.innerHTML = '';
+  if (!items.length) {
+    container.innerHTML = '<article class="callout-item"><strong>No clear page callouts yet.</strong><span>The scan did not produce enough signal to isolate the highest-priority page-level findings.</span></article>';
+    return;
+  }
+
+  items.forEach((item) => {
+    const article = document.createElement('article');
+    article.className = 'callout-item';
+    article.innerHTML = `
+      <strong>${escapeHtml(item.title || 'Callout')}</strong>
+      <span>${escapeHtml(item.detail || '')}</span>
+      <div class="inventory-meta">
+        ${item.page ? renderChip(item.page, 'info') : ''}
+        ${item.severity ? renderChip(item.severity, chipTone(item.severity)) : ''}
+      </div>
+    `;
+    container.appendChild(article);
+  });
+}
+
+function renderBriefs(container, items) {
+  container.innerHTML = '';
+  if (!items.length) {
+    container.innerHTML = '<article class="brief-item"><strong>No content briefs available yet.</strong><span>The engine needs stronger target market or service inputs before it can generate the best page brief set.</span></article>';
+    return;
+  }
+
+  items.forEach((item) => {
+    const article = document.createElement('article');
+    article.className = 'brief-item';
+    const sectionChips = Array.isArray(item.sections)
+      ? item.sections.map((section) => renderChip(section, 'warn')).join('')
+      : '';
+    article.innerHTML = `
+      <strong>${escapeHtml(item.title || 'Content brief')}</strong>
+      <span>${escapeHtml(item.summary || '')}</span>
+      <div class="blueprint-meta">
+        ${item.keyword ? renderChip(item.keyword, 'good') : ''}
+        ${item.intent ? renderChip(item.intent, 'info') : ''}
+        ${sectionChips}
+      </div>
+    `;
+    container.appendChild(article);
+  });
+}
+
 function renderFailure(error) {
   emptyState.classList.add('hidden');
   resultsContent.classList.remove('hidden');
@@ -394,12 +485,16 @@ function renderFailure(error) {
   overallSummary.textContent = 'The request failed before the crawl could finish. Check the submitted domain and try again.';
   crawlStatus.textContent = 'Unavailable';
   crawlSnapshot.innerHTML = `<p>${escapeHtml(error.message || 'Unknown error')}</p>`;
+  calloutList.innerHTML = '<article class="callout-item"><strong>Callouts unavailable</strong><span>The scan failed before page-level findings could be generated.</span></article>';
   clusterStatus.textContent = 'Unavailable';
   clusterMap.innerHTML = '<div class="cluster-empty">The cluster map could not be built because the scan failed.</div>';
+  briefList.innerHTML = '<article class="brief-item"><strong>Content briefs unavailable</strong><span>The scan failed before page briefs could be generated.</span></article>';
   competitorStatus.textContent = 'Unavailable';
   competitorComparison.innerHTML = '<div class="competitor-empty">Competitor comparison is unavailable because the scan failed.</div>';
   aiStatus.textContent = 'Unavailable';
   aiAnalysis.innerHTML = '<p>The expansion strategy could not be generated because the crawl failed.</p>';
+  reportStatus.textContent = 'Locked';
+  downloadReportBtn.disabled = true;
 }
 
 function setScore(valueEl, labelEl, value) {
@@ -428,6 +523,83 @@ function qualityTone(value) {
 
 function renderChip(text, tone) {
   return `<span class="chip ${tone}">${escapeHtml(text)}</span>`;
+}
+
+function getLeadDetails() {
+  const formData = new FormData(reportGateForm);
+  return {
+    name: cleanString(formData.get('leadName')),
+    phone: cleanString(formData.get('leadPhone')),
+    email: cleanString(formData.get('leadEmail'))
+  };
+}
+
+function downloadReport() {
+  if (!lastResult) return;
+  const lead = getLeadDetails();
+  const content = buildReportHtml(lastResult, lead);
+  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `local-seo-expansion-report-${Date.now()}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildReportHtml(result, lead) {
+  const section = (title, items) => `
+    <section>
+      <h2>${escapeHtml(title)}</h2>
+      <div class="stack">
+        ${items.map((item) => `<article class="card"><strong>${escapeHtml(item.title || '')}</strong><p>${escapeHtml(item.detail || item.summary || '')}</p></article>`).join('')}
+      </div>
+    </section>
+  `;
+
+  return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local SEO Expansion Report</title>
+    <style>
+      body{font-family:Arial,sans-serif;background:#0b1220;color:#f4f7ff;margin:0;padding:40px;}
+      .shell{max-width:980px;margin:0 auto;}
+      h1,h2{margin:0 0 16px;}
+      p{line-height:1.6;color:#c8d4ea;}
+      .hero,.card{background:#121c30;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px;}
+      .hero{margin-bottom:24px;}
+      .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0;}
+      .stack{display:grid;gap:12px;}
+      .chip{display:inline-block;padding:6px 10px;border-radius:999px;background:#1d3155;color:#dce9ff;margin:6px 8px 0 0;font-size:12px;text-transform:uppercase;}
+      section{margin-top:26px;}
+      @media (max-width:700px){body{padding:20px;}.grid{grid-template-columns:1fr;}}
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="hero">
+        <h1>Local SEO Expansion Report</h1>
+        <p><strong>Prepared for:</strong> ${escapeHtml(lead.name)} | ${escapeHtml(lead.email)} | ${escapeHtml(lead.phone)}</p>
+        <p>${escapeHtml(result.summary || '')}</p>
+        <div>
+          <span class="chip">Coverage ${result.scores?.coverage || 0}</span>
+          <span class="chip">Quality ${result.scores?.quality || 0}</span>
+          <span class="chip">Internal Links ${result.scores?.linking || 0}</span>
+          <span class="chip">Readiness ${result.scores?.readiness || 0}</span>
+        </div>
+      </div>
+      ${section('Priority Stack', result.priorities || [])}
+      ${section('Page Callouts', result.callouts || [])}
+      ${section('Missing Opportunities', result.gaps || [])}
+      ${section('Blueprint Recommendations', result.blueprints || [])}
+      ${section('Content Briefs', result.contentBriefs || [])}
+    </div>
+  </body>
+  </html>`;
 }
 
 function escapeHtml(text) {

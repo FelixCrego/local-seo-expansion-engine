@@ -67,8 +67,10 @@ module.exports = async (req, res) => {
       priorities: [],
       gaps: [],
       inventory: [],
+      callouts: [],
       linkOpportunities: [],
       blueprints: [],
+      contentBriefs: [],
       aiAnalysis: { blocks: ['The scan failed before a strategy readout could be generated.'] }
     });
   }
@@ -329,8 +331,10 @@ function buildEngineResult(input, crawl) {
 
   const gaps = buildGaps(markets, services, pageMap);
   const inventory = buildInventory(pageMap);
+  const callouts = buildCallouts(pageMap);
   const linkOpportunities = buildLinkOpportunities(pageMap, markets, services);
   const blueprints = buildBlueprints(gaps, pageMap, input);
+  const contentBriefs = buildContentBriefs(blueprints, input);
   const clusterMap = buildClusterMap(markets, services, pageMap);
 
   const scores = {
@@ -361,9 +365,11 @@ function buildEngineResult(input, crawl) {
     priorities,
     gaps,
     inventory,
+    callouts,
     clusterMap,
     linkOpportunities,
     blueprints,
+    contentBriefs,
     competitorComparison: { items: [], summary: '' },
     aiAnalysis: {
       blocks: buildFallbackBlocks(scores, gaps, pageMap, input)
@@ -470,6 +476,55 @@ function buildInventory(pageMap) {
     }));
 }
 
+function buildCallouts(pageMap) {
+  const items = [];
+  const lowMeta = pageMap.filter((page) => (page.market || page.service) && (!page.title || !page.metaDescription)).slice(0, 2);
+  const lowDepth = pageMap.filter((page) => (page.market || page.service) && page.wordCount < 250).slice(0, 2);
+  const lowTrust = pageMap.filter((page) => (page.market || page.service) && page.proofSignals === 0).slice(0, 2);
+
+  lowMeta.forEach((page) => {
+    items.push({
+      title: 'Weak metadata on an important local page',
+      detail: 'This page is missing a stronger title tag or meta description, which makes it harder to clarify local intent and earn clicks.',
+      page: trimTitle(page.title || page.url),
+      severity: 'critical'
+    });
+  });
+
+  lowDepth.forEach((page) => {
+    items.push({
+      title: 'Local page depth is likely too thin',
+      detail: `This page only showed about ${page.wordCount} words during the crawl. It likely needs more local context, proof, and FAQ depth to compete harder.`,
+      page: trimTitle(page.title || page.url),
+      severity: 'high'
+    });
+  });
+
+  lowTrust.forEach((page) => {
+    items.push({
+      title: 'Proof is missing near a local intent page',
+      detail: 'The engine did not detect obvious testimonial, review, or case-study language on this page. That weakens trust at a key decision point.',
+      page: trimTitle(page.title || page.url),
+      severity: 'medium'
+    });
+  });
+
+  const deduped = dedupeBy(items, (item) => `${item.title}:${item.page}`);
+  if (deduped.length) return deduped.slice(0, 6);
+
+  const lowestPages = [...pageMap]
+    .filter((page) => page.market || page.service || page.pageType !== 'General page')
+    .sort((a, b) => a.qualityScore - b.qualityScore)
+    .slice(0, 3);
+
+  return lowestPages.map((page) => ({
+    title: 'Page worth tightening before expansion',
+    detail: `This page surfaced as one of the weaker structural assets in the crawl. Tightening its metadata, proof, and internal links will make the next expansion layer compound better.`,
+    page: trimTitle(page.title || page.url),
+    severity: 'medium'
+  }));
+}
+
 function buildLinkOpportunities(pageMap, markets, services) {
   const items = [];
   const hubs = pageMap.filter((page) => page.pageType === 'Hub page');
@@ -532,6 +587,16 @@ function buildBlueprints(gaps, pageMap, input) {
         : ['Market overview', 'Services covered', 'Proof / FAQ', 'Connected markets', 'Conversion CTA']
     };
   });
+}
+
+function buildContentBriefs(blueprints, input) {
+  return blueprints.slice(0, 4).map((item) => ({
+    title: item.title,
+    summary: `This page should target a direct local-intent query, explain why ${input.primaryService} matters in that market, and route visitors deeper into the surrounding local cluster.`,
+    keyword: item.titleTag || item.title,
+    intent: 'Local transactional',
+    sections: item.sections || []
+  }));
 }
 
 function buildClusterMap(markets, services, pageMap) {
@@ -699,9 +764,11 @@ ${JSON.stringify({
   summary: engineResult.summary,
   gaps: engineResult.gaps.slice(0, 8),
   inventory: engineResult.inventory.slice(0, 8),
+  callouts: engineResult.callouts.slice(0, 6),
   clusterMap: engineResult.clusterMap,
   linkOpportunities: engineResult.linkOpportunities.slice(0, 6),
   blueprints: engineResult.blueprints.slice(0, 6),
+  contentBriefs: engineResult.contentBriefs.slice(0, 4),
   competitorComparison: engineResult.competitorComparison
 }, null, 2)}
 
@@ -778,6 +845,16 @@ function summarizeCompetitors(items, engineResult) {
   const bestCoverage = viable.reduce((best, item) => item.marketCoverage > best.marketCoverage ? item : best, viable[0]);
   const bestPairs = viable.reduce((best, item) => item.servicePairs > best.servicePairs ? item : best, viable[0]);
   return `The strongest competitor footprint signal came from ${bestCoverage.label} on market coverage and ${bestPairs.label} on market-service pairings. Use that contrast to decide whether your next advantage should come from broader market hubs or deeper paired pages first.`;
+}
+
+function dedupeBy(items, keyFn) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = keyFn(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function safeHost(url) {

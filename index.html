@@ -131,7 +131,10 @@
                                 <span class="card-kicker">Results</span>
                                 <h3>Expansion Readout</h3>
                             </div>
-                            <button id="rerunAiBtn" type="button" class="text-button" disabled>Refresh AI Strategy</button>
+                            <div class="results-actions">
+                                <button id="rerunAiBtn" type="button" class="text-button" disabled>Refresh AI Strategy</button>
+                                <button id="downloadReportBtn" type="button" class="btn btn-secondary btn-small" disabled>Unlock Report</button>
+                            </div>
                         </div>
 
                         <div id="emptyState" class="empty-state">
@@ -197,6 +200,11 @@
                             </div>
 
                             <div class="priority-section">
+                                <h4>Page Callouts</h4>
+                                <div id="calloutList" class="callout-list"></div>
+                            </div>
+
+                            <div class="priority-section">
                                 <div class="section-subheader">
                                     <h4>Local Cluster Map</h4>
                                     <span id="clusterStatus" class="ai-status">Awaiting scan</span>
@@ -215,6 +223,11 @@
                             </div>
 
                             <div class="priority-section">
+                                <h4>Content Briefs</h4>
+                                <div id="briefList" class="brief-list"></div>
+                            </div>
+
+                            <div class="priority-section">
                                 <div class="section-subheader">
                                     <h4>Competitor Readout</h4>
                                     <span id="competitorStatus" class="ai-status">Not run</span>
@@ -230,6 +243,33 @@
                                 <div id="aiAnalysis" class="ai-analysis">
                                     <p>The engine will generate an AI-assisted strategy readout when available.</p>
                                 </div>
+                            </div>
+
+                            <div class="priority-section report-gate">
+                                <div class="section-subheader">
+                                    <h4>Unlock the Downloadable Report</h4>
+                                    <span id="reportStatus" class="ai-status">Locked</span>
+                                </div>
+                                <p class="report-copy">Enter your details to download the full report with the crawl summary, competitive read, cluster map notes, and recommended page buildouts.</p>
+                                <form id="reportGateForm" class="engine-form report-form">
+                                    <div class="two-up">
+                                        <div class="question-block">
+                                            <label for="leadName">Full name</label>
+                                            <input id="leadName" name="leadName" type="text" placeholder="Your name">
+                                        </div>
+                                        <div class="question-block">
+                                            <label for="leadPhone">Phone</label>
+                                            <input id="leadPhone" name="leadPhone" type="tel" placeholder="(555) 555-5555">
+                                        </div>
+                                    </div>
+                                    <div class="question-block">
+                                        <label for="leadEmail">Email</label>
+                                        <input id="leadEmail" name="leadEmail" type="email" placeholder="you@company.com">
+                                    </div>
+                                    <div class="step-actions">
+                                        <button id="unlockReportBtn" type="submit" class="btn btn-primary">Unlock and Download Report</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </aside>

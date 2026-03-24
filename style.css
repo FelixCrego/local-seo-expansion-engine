@@ -349,6 +349,19 @@ p {
     margin-top: 8px;
 }
 
+.results-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-small {
+    padding: 11px 16px;
+    font-size: 0.74rem;
+}
+
 .scan-badge,
 .ai-status {
     padding: 8px 12px;
@@ -455,6 +468,8 @@ p {
 .gap-list,
 .inventory-list,
 .blueprint-list,
+.brief-list,
+.callout-list,
 .competitor-grid {
     display: grid;
     gap: 12px;
@@ -465,6 +480,8 @@ p {
 .gap-item,
 .inventory-item,
 .blueprint-item,
+.brief-item,
+.callout-item,
 .competitor-card {
     padding: 18px;
     border-radius: 22px;
@@ -477,6 +494,8 @@ p {
 .gap-item strong,
 .inventory-item strong,
 .blueprint-item strong,
+.brief-item strong,
+.callout-item strong,
 .competitor-card strong {
     display: block;
     margin-bottom: 8px;
@@ -487,6 +506,8 @@ p {
 .gap-item span,
 .inventory-item span,
 .blueprint-item span,
+.brief-item span,
+.callout-item span,
 .competitor-card span {
     color: var(--muted);
     line-height: 1.65;
@@ -509,6 +530,16 @@ p {
 .gap-item {
     background: linear-gradient(135deg, rgba(139, 124, 255, 0.12), rgba(255, 255, 255, 0.04));
     border-color: rgba(139, 124, 255, 0.24);
+}
+
+.callout-item {
+    background: linear-gradient(135deg, rgba(255, 109, 109, 0.12), rgba(255, 255, 255, 0.04));
+    border-color: rgba(255, 109, 109, 0.18);
+}
+
+.brief-item {
+    background: linear-gradient(135deg, rgba(61, 213, 152, 0.12), rgba(255, 255, 255, 0.04));
+    border-color: rgba(61, 213, 152, 0.18);
 }
 
 .inventory-meta,
@@ -610,6 +641,21 @@ p {
 .competitor-card-summary {
     background: linear-gradient(135deg, rgba(61, 134, 255, 0.12), rgba(255, 255, 255, 0.04));
     border-color: rgba(61, 134, 255, 0.18);
+}
+
+.report-gate {
+    padding: 22px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, rgba(61, 134, 255, 0.12), rgba(102, 215, 255, 0.05));
+    border: 1px solid rgba(102, 215, 255, 0.18);
+}
+
+.report-copy {
+    margin-top: 6px;
+}
+
+.report-form {
+    margin-top: 18px;
 }
 
 .chip {
@@ -734,7 +780,8 @@ p {
     }
 
     .step-actions .btn,
-    .text-button {
+    .text-button,
+    .results-actions .btn {
         width: 100%;
     }
 }
