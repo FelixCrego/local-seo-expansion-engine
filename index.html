@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local SEO Expansion Engine | Felix Crego</title>
-    <meta name="description" content="Local SEO Expansion Engine by Felix Crego is the product system for planning, structuring, and scaling local SEO page ecosystems.">
+    <meta name="description" content="Local SEO Expansion Engine by Felix Crego audits local SEO page ecosystems, market coverage, internal linking, and expansion gaps.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -16,9 +16,9 @@
             <div class="container nav-row">
                 <a href="index.html" class="brand">Local SEO Expansion Engine</a>
                 <nav class="nav-links">
+                    <a href="#workspace">Workspace</a>
+                    <a href="#results">Results</a>
                     <a href="#system">System</a>
-                    <a href="#layers">Layers</a>
-                    <a href="#roadmap">Roadmap</a>
                 </nav>
                 <a href="https://www.felixcrego.com" class="header-link" target="_blank" rel="noreferrer">by Felix Crego</a>
             </div>
@@ -29,109 +29,249 @@
                 <div class="container hero-grid">
                     <div class="hero-copy">
                         <span class="eyebrow">Local Search Product</span>
-                        <h1>Plan and scale local SEO page ecosystems without turning the site into junk.</h1>
-                        <p>Local SEO Expansion Engine is the product layer Felix Crego is building to help operators map service areas, page intent, internal links, supporting proof, and scalable local page structures that deserve to rank.</p>
+                        <h1>Map the local footprint, find the real gaps, and expand the right pages next.</h1>
+                        <p>Local SEO Expansion Engine crawls a site, inventories the current local page ecosystem, checks structural quality, finds missing market and service coverage, and turns that into a real expansion plan instead of another vague audit.</p>
                         <div class="hero-actions">
-                            <a href="#layers" class="btn btn-primary">Explore the Engine</a>
-                            <a href="#roadmap" class="btn btn-secondary">See the Roadmap</a>
+                            <a href="#workspace" class="btn btn-primary">Run the Engine</a>
+                            <a href="#system" class="btn btn-secondary">See the Model</a>
                         </div>
                         <div class="hero-pill-row">
-                            <span>Local Intent Mapping</span>
-                            <span>Page Architecture</span>
+                            <span>Market Inventory</span>
+                            <span>Coverage Gaps</span>
                             <span>Internal Linking</span>
-                            <span>Scalable Expansion</span>
+                            <span>Expansion Planning</span>
                         </div>
                     </div>
                     <div class="hero-panel">
                         <div class="hero-panel-card">
-                            <span class="panel-kicker">Phase 1</span>
+                            <span class="panel-kicker">Live MVP</span>
                             <h2>Expansion View</h2>
                             <ul>
-                                <li>Identify missing local page opportunities</li>
-                                <li>Map city, county, region, and service intent</li>
-                                <li>Spot weak internal linking and thin local layers</li>
-                                <li>Turn local SEO into a structured growth system</li>
+                                <li>Crawl the current local footprint</li>
+                                <li>Find markets and services not covered well</li>
+                                <li>Score page quality and linking strength</li>
+                                <li>Generate the next page and internal-link roadmap</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="system" class="section">
+            <section id="workspace" class="section">
                 <div class="container section-header">
-                    <span class="eyebrow">What It Will Be</span>
-                    <h2>A local-search operating system, not just a page generator.</h2>
-                    <p>The goal is to help businesses expand geographically with the right page types, the right internal linking structure, and the right local proof layers so growth stays useful and indexable.</p>
+                    <span class="eyebrow">Workspace</span>
+                    <h2>Point the engine at a site and define the local expansion target.</h2>
+                    <p>The engine works best when you give it the domain, the primary service, and the markets you actually want to own. Then it can judge the current footprint against the expansion goal.</p>
                 </div>
-                <div class="container value-grid">
-                    <article class="value-card">
-                        <span class="value-number">01</span>
-                        <h3>Intent Mapping</h3>
-                        <p>Clarify what page types the business actually needs across cities, counties, services, and situations.</p>
-                    </article>
-                    <article class="value-card">
-                        <span class="value-number">02</span>
-                        <h3>Expansion Architecture</h3>
-                        <p>Design the right structure for hubs, local pages, support content, and internal links.</p>
-                    </article>
-                    <article class="value-card">
-                        <span class="value-number">03</span>
-                        <h3>Scalable Quality Control</h3>
-                        <p>Keep local page growth from collapsing into thin, repetitive, low-trust SEO clutter.</p>
-                    </article>
+
+                <div class="container app-grid">
+                    <section class="app-card intake-card">
+                        <div class="intake-header">
+                            <div>
+                                <span class="card-kicker">Expansion Inputs</span>
+                                <h3>Local Footprint Scan</h3>
+                            </div>
+                            <div class="scan-badge" id="scanBadge">Ready</div>
+                        </div>
+
+                        <form id="engineForm" class="engine-form">
+                            <div class="question-block">
+                                <label for="website">Website</label>
+                                <input id="website" name="website" type="url" required placeholder="https://yourdomain.com">
+                            </div>
+                            <div class="two-up">
+                                <div class="question-block">
+                                    <label for="primaryService">Primary service</label>
+                                    <input id="primaryService" name="primaryService" type="text" required placeholder="Sell my house fast">
+                                </div>
+                                <div class="question-block">
+                                    <label for="primaryMarket">Primary market</label>
+                                    <input id="primaryMarket" name="primaryMarket" type="text" required placeholder="Orlando">
+                                </div>
+                            </div>
+                            <div class="question-block">
+                                <label for="targetMarkets">Target markets to expand into</label>
+                                <textarea id="targetMarkets" name="targetMarkets" rows="4" placeholder="Miami, Tampa, Jacksonville, Orange County, Osceola County"></textarea>
+                                <small class="field-note">Separate markets by commas or new lines. Cities, counties, and regions are all fine.</small>
+                            </div>
+                            <div class="question-block">
+                                <label for="targetServices">Target services / situations</label>
+                                <textarea id="targetServices" name="targetServices" rows="3" placeholder="inherited house, foreclosure help, major repairs, cash home buyer"></textarea>
+                            </div>
+                            <div class="question-block">
+                                <label for="businessType">Business type</label>
+                                <select id="businessType" name="businessType">
+                                    <option value="">Select one</option>
+                                    <option value="real-estate">Real estate investor / home buyer</option>
+                                    <option value="home-services">Home services</option>
+                                    <option value="legal">Legal</option>
+                                    <option value="medical">Medical</option>
+                                    <option value="agency">Agency / B2B service</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="question-block">
+                                <label for="notes">Anything the engine should know?</label>
+                                <textarea id="notes" name="notes" rows="4" placeholder="Mention specific cities, counties, competition, or how the site is structured today."></textarea>
+                            </div>
+                            <div class="step-actions">
+                                <button id="runEngineBtn" type="submit" class="btn btn-primary">Run Expansion Engine</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <aside id="results" class="app-card results-card">
+                        <div class="results-header">
+                            <div>
+                                <span class="card-kicker">Results</span>
+                                <h3>Expansion Readout</h3>
+                            </div>
+                            <button id="rerunAiBtn" type="button" class="text-button" disabled>Refresh AI Strategy</button>
+                        </div>
+
+                        <div id="emptyState" class="empty-state">
+                            <div class="empty-icon">LS</div>
+                            <p>Run the engine to see the local page inventory, missing markets, linking opportunities, and expansion priorities.</p>
+                        </div>
+
+                        <div id="resultsContent" class="results-content hidden">
+                            <div class="score-grid">
+                                <article class="score-card">
+                                    <span>Coverage</span>
+                                    <strong id="coverageScore">0</strong>
+                                    <small id="coverageLabel">Pending</small>
+                                </article>
+                                <article class="score-card">
+                                    <span>Page Quality</span>
+                                    <strong id="qualityScore">0</strong>
+                                    <small id="qualityLabel">Pending</small>
+                                </article>
+                                <article class="score-card">
+                                    <span>Internal Links</span>
+                                    <strong id="linkingScore">0</strong>
+                                    <small id="linkingLabel">Pending</small>
+                                </article>
+                                <article class="score-card">
+                                    <span>Expansion Readiness</span>
+                                    <strong id="readinessScore">0</strong>
+                                    <small id="readinessLabel">Pending</small>
+                                </article>
+                            </div>
+
+                            <div class="summary-panel">
+                                <div>
+                                    <span class="mini-label">Current State</span>
+                                    <h4 id="overallHeadline">Waiting for scan</h4>
+                                </div>
+                                <p id="overallSummary">Run the scan to generate the local expansion diagnosis.</p>
+                            </div>
+
+                            <div class="priority-section">
+                                <div class="section-subheader">
+                                    <h4>Site Crawl Snapshot</h4>
+                                    <span id="crawlStatus" class="ai-status">Awaiting scan</span>
+                                </div>
+                                <div id="crawlSnapshot" class="ai-analysis">
+                                    <p>The engine will show how many pages it analyzed, how many local pages it found, and what it recognized on the site.</p>
+                                </div>
+                            </div>
+
+                            <div class="priority-section">
+                                <h4>Priority Stack</h4>
+                                <div id="priorityList" class="priority-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <h4>Missing Market / Service Opportunities</h4>
+                                <div id="gapList" class="gap-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <h4>Page Inventory Snapshot</h4>
+                                <div id="inventoryList" class="inventory-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <h4>Internal Link Opportunities</h4>
+                                <div id="linkOpportunities" class="action-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <h4>Page Blueprint Recommendations</h4>
+                                <div id="blueprintList" class="blueprint-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <div class="section-subheader">
+                                    <h4>AI Expansion Strategy</h4>
+                                    <span id="aiStatus" class="ai-status">Heuristic mode</span>
+                                </div>
+                                <div id="aiAnalysis" class="ai-analysis">
+                                    <p>The engine will generate an AI-assisted strategy readout when available.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             </section>
 
-            <section id="layers" class="section section-alt">
+            <section id="system" class="section section-alt">
                 <div class="container section-header">
-                    <span class="eyebrow">Core Layers</span>
-                    <h2>The first layers inside Local SEO Expansion Engine.</h2>
+                    <span class="eyebrow">System Model</span>
+                    <h2>The first four layers inside Local SEO Expansion Engine.</h2>
+                    <p>This MVP is built around the four questions that usually decide whether local SEO expansion will compound or collapse.</p>
                 </div>
                 <div class="container module-grid">
                     <article class="module-card module-card-primary">
                         <span class="module-label">Layer A</span>
                         <h3>Market Expansion Mapper</h3>
-                        <p>Identify which geographic layers deserve pages and how they should relate to each other.</p>
+                        <p>Compares current page coverage to the target city, county, and regional footprint the business wants to own.</p>
                     </article>
                     <article class="module-card">
                         <span class="module-label">Layer B</span>
                         <h3>Local Page Scoring</h3>
-                        <p>Score whether current city, county, or service-area pages are strong enough to deserve rankings.</p>
+                        <p>Scores whether the current local pages have enough structure, metadata, proof, and conversion signals to deserve rankings.</p>
                     </article>
                     <article class="module-card">
                         <span class="module-label">Layer C</span>
                         <h3>Internal Link Engine</h3>
-                        <p>Map how hub pages, local pages, and supporting content should reinforce each other.</p>
+                        <p>Finds whether hub pages and local pages are actually reinforcing each other or sitting in weak isolated pockets.</p>
                     </article>
                     <article class="module-card">
                         <span class="module-label">Layer D</span>
-                        <h3>Proof Layer Planner</h3>
-                        <p>Surface where testimonials, case studies, and local trust content should strengthen the page set.</p>
+                        <h3>Gap + Priority Planner</h3>
+                        <p>Turns the footprint scan into the next pages to build, the weakest pages to improve, and the markets to prioritize first.</p>
                     </article>
                 </div>
             </section>
 
-            <section id="roadmap" class="section">
-                <div class="container roadmap-wrap">
-                    <div class="section-header section-header-left">
-                        <span class="eyebrow">Roadmap</span>
-                        <h2>Prepared to become a serious local-search product.</h2>
-                        <p>The long-term vision is a system that helps operators expand into new markets with strategic page plans, stronger local entities, better internal links, and ongoing quality control as the footprint grows.</p>
-                    </div>
-                    <div class="roadmap-list">
-                        <div class="roadmap-item">
-                            <strong>Phase 1</strong>
-                            <span>Market mapping and page inventory logic</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <strong>Phase 2</strong>
-                            <span>Interactive local page scoring and internal link planning</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <strong>Phase 3</strong>
-                            <span>Connected workflows with FelixCRM, MarketingHub, and content systems</span>
-                        </div>
-                    </div>
+            <section class="section">
+                <div class="container section-header">
+                    <span class="eyebrow">Why It Hits Harder</span>
+                    <h2>Built to go beyond listings, rank grids, and lightweight local SEO checklists.</h2>
+                    <p>Most local SEO tools focus on listings, rankings, or citations. This engine is built to inspect the actual page ecosystem that has to rank, convert, and compound across cities, counties, and service variations.</p>
+                </div>
+                <div class="container comparison-grid">
+                    <article class="comparison-card comparison-card-primary">
+                        <span class="module-label">This Engine</span>
+                        <h3>Page-system analysis for real expansion planning</h3>
+                        <ul>
+                            <li>Crawls the site and classifies local pages</li>
+                            <li>Measures market and service coverage gaps</li>
+                            <li>Finds weak internal-link structure</li>
+                            <li>Builds next-page blueprints, not just scores</li>
+                        </ul>
+                    </article>
+                    <article class="comparison-card">
+                        <span class="module-label">What Usually Exists</span>
+                        <h3>Useful, but often lighter on the page architecture itself</h3>
+                        <ul>
+                            <li>Listings and citation management</li>
+                            <li>Rank trackers and grids</li>
+                            <li>Basic local audits</li>
+                            <li>Less guidance on the actual expansion system</li>
+                        </ul>
+                    </article>
                 </div>
             </section>
         </main>
