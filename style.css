@@ -454,7 +454,8 @@ p {
 .action-list,
 .gap-list,
 .inventory-list,
-.blueprint-list {
+.blueprint-list,
+.competitor-grid {
     display: grid;
     gap: 12px;
 }
@@ -463,7 +464,8 @@ p {
 .action-item,
 .gap-item,
 .inventory-item,
-.blueprint-item {
+.blueprint-item,
+.competitor-card {
     padding: 18px;
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.05);
@@ -474,7 +476,8 @@ p {
 .action-item strong,
 .gap-item strong,
 .inventory-item strong,
-.blueprint-item strong {
+.blueprint-item strong,
+.competitor-card strong {
     display: block;
     margin-bottom: 8px;
 }
@@ -483,7 +486,8 @@ p {
 .action-item span,
 .gap-item span,
 .inventory-item span,
-.blueprint-item span {
+.blueprint-item span,
+.competitor-card span {
     color: var(--muted);
     line-height: 1.65;
 }
@@ -513,6 +517,99 @@ p {
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 10px;
+}
+
+.cluster-map {
+    display: grid;
+    gap: 14px;
+}
+
+.cluster-empty,
+.competitor-empty {
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.14);
+    color: var(--muted);
+}
+
+.market-column {
+    padding: 18px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(61, 134, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(102, 215, 255, 0.18);
+}
+
+.market-column-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 14px;
+}
+
+.market-column-head strong {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+}
+
+.market-column-head span {
+    color: #d6e3fb;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.market-column-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 10px;
+}
+
+.cluster-node {
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.cluster-node strong {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.cluster-node span {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.cluster-node.existing {
+    background: linear-gradient(135deg, rgba(61, 213, 152, 0.14), rgba(255, 255, 255, 0.04));
+    border-color: rgba(61, 213, 152, 0.2);
+}
+
+.cluster-node.missing {
+    background: linear-gradient(135deg, rgba(245, 166, 35, 0.14), rgba(255, 255, 255, 0.04));
+    border-color: rgba(245, 166, 35, 0.22);
+}
+
+.cluster-links-summary {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(139, 124, 255, 0.12);
+    border: 1px solid rgba(139, 124, 255, 0.2);
+    color: #ebebff;
+    font-size: 0.92rem;
+}
+
+.competitor-card {
+    background: linear-gradient(135deg, rgba(139, 124, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border-color: rgba(139, 124, 255, 0.18);
+}
+
+.competitor-card-summary {
+    background: linear-gradient(135deg, rgba(61, 134, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border-color: rgba(61, 134, 255, 0.18);
 }
 
 .chip {

@@ -15,6 +15,13 @@ module.exports = async (req, res) => {
 
     const crawl = await crawlSite(normalized);
     const engineResult = buildEngineResult(normalized, crawl);
+    if (normalized.competitors.length) {
+      const competitorItems = await crawlCompetitors(normalized.competitors, normalized);
+      engineResult.competitorComparison = {
+        items: competitorItems,
+        summary: summarizeCompetitors(competitorItems, engineResult)
+      };
+    }
 
     if (!process.env.OPENAI_API_KEY) {
       return res.status(200).json({
@@ -75,7 +82,8 @@ function normalizePayload(payload) {
     targetMarkets: normalizeList(payload.targetMarkets),
     targetServices: normalizeList(payload.targetServices),
     businessType: cleanString(payload.businessType),
-    notes: cleanString(payload.notes)
+    notes: cleanString(payload.notes),
+    competitors: normalizeList(payload.competitors).map(normalizeUrl).slice(0, 2)
   };
 }
 
@@ -143,6 +151,36 @@ async function crawlSite(input) {
     pages,
     discovered: crawlTargets.length
   };
+}
+
+async function crawlCompetitors(urls, input) {
+  const items = [];
+  for (const website of urls) {
+    try {
+      const crawl = await crawlSite({ website });
+      const pageMap = crawl.pages.map((page) => classifyPage(page, uniqueNormalized([input.primaryMarket, ...input.targetMarkets]), uniqueNormalized([input.primaryService, ...input.targetServices])));
+      const marketCoverage = uniqueNormalized(pageMap.map((page) => page.market).filter(Boolean)).length;
+      const servicePairs = new Set(pageMap.filter((page) => page.pairKey).map((page) => page.pairKey)).size;
+      items.push({
+        website,
+        label: safeHost(website),
+        pagesAnalyzed: crawl.pages.length,
+        marketCoverage,
+        servicePairs,
+        readout: competitorReadout(crawl.pages.length, marketCoverage, servicePairs)
+      });
+    } catch (error) {
+      items.push({
+        website,
+        label: safeHost(website),
+        pagesAnalyzed: 0,
+        marketCoverage: 0,
+        servicePairs: 0,
+        readout: `The competitor site could not be crawled cleanly: ${error.message.slice(0, 120)}`
+      });
+    }
+  }
+  return items;
 }
 
 async function fetchSitemapUrls(root) {
@@ -293,6 +331,7 @@ function buildEngineResult(input, crawl) {
   const inventory = buildInventory(pageMap);
   const linkOpportunities = buildLinkOpportunities(pageMap, markets, services);
   const blueprints = buildBlueprints(gaps, pageMap, input);
+  const clusterMap = buildClusterMap(markets, services, pageMap);
 
   const scores = {
     coverage: scoreCoverage(markets, services, pageMap),
@@ -322,8 +361,10 @@ function buildEngineResult(input, crawl) {
     priorities,
     gaps,
     inventory,
+    clusterMap,
     linkOpportunities,
     blueprints,
+    competitorComparison: { items: [], summary: '' },
     aiAnalysis: {
       blocks: buildFallbackBlocks(scores, gaps, pageMap, input)
     }
@@ -479,9 +520,57 @@ function buildBlueprints(gaps, pageMap, input) {
         ? `Create a local page that pairs ${gap.service} with ${gap.market}, includes a strong local H1, proof blocks, FAQ depth, and links back into the surrounding market cluster.`
         : `Create the market hub for ${gap.market} first, then use it to route into service-specific pages and stronger internal links.`,
       slug: `${slugBase || 'new-page'}.html`,
-      internalLinkFrom: hubSource ? trimTitle(hubSource.title || hubSource.url) : 'service-area hub'
+      internalLinkFrom: hubSource ? trimTitle(hubSource.title || hubSource.url) : 'service-area hub',
+      titleTag: gap.service
+        ? `${capitalize(gap.service)} in ${gap.market} | Local Help`
+        : `${gap.market} Service Area | Local Coverage`,
+      h1: gap.service
+        ? `${capitalize(gap.service)} in ${gap.market}`
+        : `${gap.market} Local Service Area`,
+      sections: gap.service
+        ? ['Local problem framing', 'Why owners in this market call', 'Process overview', 'Proof / FAQ', 'Related local links']
+        : ['Market overview', 'Services covered', 'Proof / FAQ', 'Connected markets', 'Conversion CTA']
     };
   });
+}
+
+function buildClusterMap(markets, services, pageMap) {
+  const nodes = [];
+  const edges = [];
+
+  markets.forEach((market) => {
+    const marketPage = pageMap.find((page) => page.market === market && page.pageType !== 'General page');
+    nodes.push({
+      id: `market:${market}`,
+      market,
+      label: market,
+      type: 'market',
+      state: marketPage ? 'existing' : 'missing'
+    });
+
+    services.slice(0, 5).forEach((service) => {
+      const pairPage = pageMap.find((page) => page.market === market && page.service === service);
+      nodes.push({
+        id: `pair:${market}:${service}`,
+        market,
+        label: service,
+        type: 'service pairing',
+        state: pairPage ? 'existing' : 'missing'
+      });
+      edges.push({
+        from: `market:${market}`,
+        to: `pair:${market}:${service}`,
+        state: pairPage ? 'existing' : 'recommended'
+      });
+    });
+  });
+
+  return {
+    status: 'Mapped',
+    markets: markets.map((market) => ({ name: market })),
+    nodes,
+    edges
+  };
 }
 
 function buildPriorities(scores, gaps, pageMap, weakest) {
@@ -610,8 +699,10 @@ ${JSON.stringify({
   summary: engineResult.summary,
   gaps: engineResult.gaps.slice(0, 8),
   inventory: engineResult.inventory.slice(0, 8),
+  clusterMap: engineResult.clusterMap,
   linkOpportunities: engineResult.linkOpportunities.slice(0, 6),
-  blueprints: engineResult.blueprints.slice(0, 6)
+  blueprints: engineResult.blueprints.slice(0, 6),
+  competitorComparison: engineResult.competitorComparison
 }, null, 2)}
 
 Be specific, practical, and local-search focused. Avoid fluff.`;
@@ -671,6 +762,30 @@ function scoreLinking(pageMap) {
   const hubCount = pageMap.filter((page) => page.pageType === 'Hub page').length;
   const pairCount = pageMap.filter((page) => page.pageType === 'Market + service page').length;
   return clamp(Math.round((Math.min(averageLinks, 12) / 12) * 65 + Math.min(hubCount * 7, 14) + Math.min(pairCount * 2, 21)));
+}
+
+function competitorReadout(pageCount, marketCoverage, servicePairs) {
+  if (!pageCount) return 'The crawl did not return enough usable pages to compare meaningfully.';
+  return `The engine found about ${pageCount} crawlable page${pageCount === 1 ? '' : 's'}, ${marketCoverage} target-market signal${marketCoverage === 1 ? '' : 's'}, and ${servicePairs} market-service pairing${servicePairs === 1 ? '' : 's'}.`;
+}
+
+function summarizeCompetitors(items, engineResult) {
+  const viable = items.filter((item) => item.pagesAnalyzed > 0);
+  if (!viable.length) {
+    return 'The competitor crawl did not return enough usable data to create a meaningful comparison.';
+  }
+
+  const bestCoverage = viable.reduce((best, item) => item.marketCoverage > best.marketCoverage ? item : best, viable[0]);
+  const bestPairs = viable.reduce((best, item) => item.servicePairs > best.servicePairs ? item : best, viable[0]);
+  return `The strongest competitor footprint signal came from ${bestCoverage.label} on market coverage and ${bestPairs.label} on market-service pairings. Use that contrast to decide whether your next advantage should come from broader market hubs or deeper paired pages first.`;
+}
+
+function safeHost(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, '');
+  } catch {
+    return cleanString(url);
+  }
 }
 
 function scorePage(page, hasMarket, hasService) {

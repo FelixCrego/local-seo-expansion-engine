@@ -19,8 +19,12 @@ const crawlSnapshot = document.getElementById('crawlSnapshot');
 const priorityList = document.getElementById('priorityList');
 const gapList = document.getElementById('gapList');
 const inventoryList = document.getElementById('inventoryList');
+const clusterStatus = document.getElementById('clusterStatus');
+const clusterMap = document.getElementById('clusterMap');
 const linkOpportunities = document.getElementById('linkOpportunities');
 const blueprintList = document.getElementById('blueprintList');
+const competitorStatus = document.getElementById('competitorStatus');
+const competitorComparison = document.getElementById('competitorComparison');
 const aiStatus = document.getElementById('aiStatus');
 const aiAnalysis = document.getElementById('aiAnalysis');
 
@@ -104,7 +108,8 @@ function serializeForm() {
     targetMarkets: splitList(raw.targetMarkets),
     targetServices: splitList(raw.targetServices),
     businessType: cleanString(raw.businessType),
-    notes: cleanString(raw.notes)
+    notes: cleanString(raw.notes),
+    competitors: splitList(raw.competitors).slice(0, 2)
   };
 }
 
@@ -139,6 +144,10 @@ function setLoadingState(active, label = 'Ready') {
     overallSummary.textContent = 'Crawling the site, classifying local pages, and building the expansion map.';
     crawlStatus.textContent = 'Scanning site';
     crawlSnapshot.innerHTML = '<p>The engine is inventorying pages, headings, metadata, forms, proof signals, and internal links.</p>';
+    clusterStatus.textContent = 'Building map';
+    clusterMap.innerHTML = '<div class="cluster-empty">The engine is mapping hubs, market pages, and missing page clusters.</div>';
+    competitorStatus.textContent = 'Pending';
+    competitorComparison.innerHTML = '<div class="competitor-empty">Competitor comparison will appear if competitor sites were provided.</div>';
     aiStatus.textContent = 'Working';
     aiAnalysis.innerHTML = '<p>Building the expansion strategy based on the crawl.</p>';
   }
@@ -174,8 +183,10 @@ function renderResults(data) {
   renderPriorityList(priorityList, data.priorities || []);
   renderGapList(gapList, data.gaps || []);
   renderInventoryList(inventoryList, data.inventory || []);
+  renderClusterMap(data.clusterMap || {});
   renderActionList(linkOpportunities, data.linkOpportunities || []);
   renderBlueprints(blueprintList, data.blueprints || []);
+  renderCompetitors(data.competitorComparison || {});
 
   scanBadge.textContent = 'Complete';
   scanBadge.className = 'scan-badge complete';
@@ -269,16 +280,109 @@ function renderBlueprints(container, items) {
   items.forEach((item) => {
     const article = document.createElement('article');
     article.className = 'blueprint-item';
+    const sectionChips = Array.isArray(item.sections)
+      ? item.sections.map((section) => renderChip(section, 'warn')).join('')
+      : '';
     article.innerHTML = `
       <strong>${escapeHtml(item.title || 'Recommended page')}</strong>
       <span>${escapeHtml(item.detail || '')}</span>
       <div class="blueprint-meta">
         ${item.slug ? renderChip(item.slug, 'info') : ''}
         ${item.internalLinkFrom ? renderChip(`Link from ${item.internalLinkFrom}`, 'good') : ''}
+        ${item.titleTag ? renderChip(`Title: ${item.titleTag}`, 'info') : ''}
+        ${item.h1 ? renderChip(`H1: ${item.h1}`, 'good') : ''}
+        ${sectionChips}
       </div>
     `;
     container.appendChild(article);
   });
+}
+
+function renderClusterMap(data) {
+  clusterMap.innerHTML = '';
+  const markets = Array.isArray(data.markets) ? data.markets : [];
+  const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+  const edges = Array.isArray(data.edges) ? data.edges : [];
+
+  if (!markets.length && !nodes.length) {
+    clusterStatus.textContent = 'Unavailable';
+    clusterMap.innerHTML = '<div class="cluster-empty">The crawl did not return enough market structure to draw the cluster map.</div>';
+    return;
+  }
+
+  clusterStatus.textContent = data.status || 'Mapped';
+
+  markets.forEach((market) => {
+    const wrap = document.createElement('article');
+    wrap.className = 'market-column';
+
+    const marketNodes = nodes.filter((node) => node.market === market.name);
+    const existingCount = marketNodes.filter((node) => node.state === 'existing').length;
+    const missingCount = marketNodes.filter((node) => node.state === 'missing').length;
+
+    wrap.innerHTML = `
+      <div class="market-column-head">
+        <strong>${escapeHtml(market.name)}</strong>
+        <span>${existingCount} existing / ${missingCount} missing</span>
+      </div>
+      <div class="market-column-body"></div>
+    `;
+
+    const body = wrap.querySelector('.market-column-body');
+    marketNodes.forEach((node) => {
+      const card = document.createElement('div');
+      card.className = `cluster-node ${node.state || 'existing'}`;
+      card.innerHTML = `
+        <strong>${escapeHtml(node.label || 'Node')}</strong>
+        <span>${escapeHtml(node.type || 'page')}</span>
+      `;
+      body.appendChild(card);
+    });
+
+    clusterMap.appendChild(wrap);
+  });
+
+  if (edges.length) {
+    const foot = document.createElement('div');
+    foot.className = 'cluster-links-summary';
+    foot.textContent = `${edges.length} recommended internal-link path${edges.length === 1 ? '' : 's'} identified across the local cluster.`;
+    clusterMap.appendChild(foot);
+  }
+}
+
+function renderCompetitors(data) {
+  competitorComparison.innerHTML = '';
+  const competitors = Array.isArray(data.items) ? data.items : [];
+
+  if (!competitors.length) {
+    competitorStatus.textContent = 'Not run';
+    competitorComparison.innerHTML = '<div class="competitor-empty">Add one or two competitor websites in the workspace to compare local footprint signals.</div>';
+    return;
+  }
+
+  competitorStatus.textContent = 'Compared';
+
+  competitors.forEach((item) => {
+    const card = document.createElement('article');
+    card.className = 'competitor-card';
+    card.innerHTML = `
+      <strong>${escapeHtml(item.label || item.website || 'Competitor')}</strong>
+      <span>${escapeHtml(item.readout || '')}</span>
+      <div class="inventory-meta">
+        ${renderChip(`${item.pagesAnalyzed || 0} pages`, 'info')}
+        ${renderChip(`${item.marketCoverage || 0} market hits`, item.marketCoverage > 0 ? 'good' : 'bad')}
+        ${renderChip(`${item.servicePairs || 0} service pairs`, item.servicePairs > 0 ? 'warn' : 'bad')}
+      </div>
+    `;
+    competitorComparison.appendChild(card);
+  });
+
+  if (data.summary) {
+    const summary = document.createElement('article');
+    summary.className = 'competitor-card competitor-card-summary';
+    summary.innerHTML = `<strong>Competitive read</strong><span>${escapeHtml(data.summary)}</span>`;
+    competitorComparison.appendChild(summary);
+  }
 }
 
 function renderFailure(error) {
@@ -290,6 +394,10 @@ function renderFailure(error) {
   overallSummary.textContent = 'The request failed before the crawl could finish. Check the submitted domain and try again.';
   crawlStatus.textContent = 'Unavailable';
   crawlSnapshot.innerHTML = `<p>${escapeHtml(error.message || 'Unknown error')}</p>`;
+  clusterStatus.textContent = 'Unavailable';
+  clusterMap.innerHTML = '<div class="cluster-empty">The cluster map could not be built because the scan failed.</div>';
+  competitorStatus.textContent = 'Unavailable';
+  competitorComparison.innerHTML = '<div class="competitor-empty">Competitor comparison is unavailable because the scan failed.</div>';
   aiStatus.textContent = 'Unavailable';
   aiAnalysis.innerHTML = '<p>The expansion strategy could not be generated because the crawl failed.</p>';
 }

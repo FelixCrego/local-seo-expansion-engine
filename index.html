@@ -114,6 +114,11 @@
                                 <label for="notes">Anything the engine should know?</label>
                                 <textarea id="notes" name="notes" rows="4" placeholder="Mention specific cities, counties, competition, or how the site is structured today."></textarea>
                             </div>
+                            <div class="question-block">
+                                <label for="competitors">Competitor websites to compare</label>
+                                <textarea id="competitors" name="competitors" rows="3" placeholder="https://competitorone.com&#10;https://competitortwo.com"></textarea>
+                                <small class="field-note">Optional. Add up to two competitor domains and the engine will compare local footprint signals against them.</small>
+                            </div>
                             <div class="step-actions">
                                 <button id="runEngineBtn" type="submit" class="btn btn-primary">Run Expansion Engine</button>
                             </div>
@@ -192,6 +197,14 @@
                             </div>
 
                             <div class="priority-section">
+                                <div class="section-subheader">
+                                    <h4>Local Cluster Map</h4>
+                                    <span id="clusterStatus" class="ai-status">Awaiting scan</span>
+                                </div>
+                                <div id="clusterMap" class="cluster-map"></div>
+                            </div>
+
+                            <div class="priority-section">
                                 <h4>Internal Link Opportunities</h4>
                                 <div id="linkOpportunities" class="action-list"></div>
                             </div>
@@ -199,6 +212,14 @@
                             <div class="priority-section">
                                 <h4>Page Blueprint Recommendations</h4>
                                 <div id="blueprintList" class="blueprint-list"></div>
+                            </div>
+
+                            <div class="priority-section">
+                                <div class="section-subheader">
+                                    <h4>Competitor Readout</h4>
+                                    <span id="competitorStatus" class="ai-status">Not run</span>
+                                </div>
+                                <div id="competitorComparison" class="competitor-grid"></div>
                             </div>
 
                             <div class="priority-section">
